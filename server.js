@@ -21,7 +21,7 @@ const transporter = nodemailer.createTransport({
 
 // Route to handle form submission
 app.post('/api/contact', (req, res) => {
-  const { name, email, companySize, interest } = req.body;
+  const { name, email, phone, companySize, interest } = req.body;
 
   if (!name || !email || phone || !companySize || !interest) {
     return res.status(400).json({ error: 'All fields are required.' });
@@ -55,3 +55,4 @@ phone : ${phone}
 app.listen(port, () => {
   console.log(`Server is running on http://localhost:${port}`);
 });
+
