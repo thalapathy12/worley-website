@@ -1,59 +1,40 @@
-const express = require('express');
-const nodemailer = require('nodemailer');
-const bodyParser = require('body-parser');
-const cors = require('cors');
+import express from "express";
+import bodyParser from "body-parser";
+import cors from "cors";
+import { Resend } from "resend";
 
 const app = express();
-const port = 3000;
-
-// Middleware
 app.use(cors());
 app.use(bodyParser.json());
 
-// Email configuration (replace with your real email & app password)
-const transporter = nodemailer.createTransport({
-  service: 'gmail',
-  auth: {
-    user: 'selvamsiva4@gmail.com',          // <-- YOUR EMAIL
-    pass: 'pxzk behv dduo vxgm'              // <-- YOUR APP PASSWORD (not your Gmail password)
-  }
-});
+const resend = new Resend("re_RUHLndP7_4PWFRMsGq9u7dznGsiwbroZz"); // paste from Resend dashboard
 
-// Route to handle form submission
-app.post('/api/contact', (req, res) => {
+app.post("/api/contact", async (req, res) => {
   const { name, email, phone, companySize, interest } = req.body;
+  if (!name || !email || !phone || !companySize || !interest)
+    return res.status(400).json({ error: "All fields are required" });
 
-  if (!name || !email || !phone || !companySize || !interest) {
-    return res.status(400).json({ error: 'All fields are required.' });
-  }
-
-  const mailOptions = {
-    from: 'selvamsiva4@gmail.com',
-    to: 'sivastyleno1@gmail.com',  // <-- Email where you want to receive submissions
-    subject: 'New Contact Form Submission',
-    text: `
+  try {
+    const response = await resend.emails.send({
+      from: "Gold Billing <onboarding@resend.dev>", // or your verified domain email
+      to: "sivastyleno1@gmail.com",
+      subject: "New Contact Form Submission",
+      text: `
 New Submission Received:
 
 Name: ${name}
 Email: ${email}
+Phone: ${phone}
 Company Size: ${companySize}
 Interest: ${interest}
-phone : ${phone}
-    `
-  };
-
-  transporter.sendMail(mailOptions, (error, info) => {
-    if (error) {
-      console.error('Error sending email:', error);
-      return res.status(500).json({ error: 'Failed to send email.' });
-    } else {
-      return res.status(200).json({ message: 'Form submitted successfully.' });
-    }
-  });
+      `,
+    });
+    console.log("✅ Email sent:", response.id);
+    res.json({ success: true, message: "Form submitted successfully" });
+  } catch (err) {
+    console.error("❌ Email send failed:", err);
+    res.status(500).json({ error: "Email send failed" });
+  }
 });
 
-app.listen(port, () => {
-  console.log(`Server is running on http://localhost:${port}`);
-});
-
-
+app.listen(3000, () => console.log("🚀 Server running on port 3000"));
